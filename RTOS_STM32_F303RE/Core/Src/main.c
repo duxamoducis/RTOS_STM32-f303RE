@@ -22,7 +22,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include "stdio.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -65,6 +65,15 @@ void Task3_init(void const * argument);
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
 
+int _write(int file, char *ptr, int len)
+{
+	/* Write code that is used by puts and printf */
+	int i = 0;
+	for(i=0; i<len; i++)
+		ITM_SendChar((*ptr++));
+
+	return len;
+}
 /* USER CODE END 0 */
 
 /**
@@ -97,7 +106,7 @@ int main(void)
   MX_GPIO_Init();
   MX_USART2_UART_Init();
   /* USER CODE BEGIN 2 */
-
+  printf("starting....\n");
   /* USER CODE END 2 */
 
   /* USER CODE BEGIN RTOS_MUTEX */
@@ -284,6 +293,8 @@ void Task1_init(void const * argument)
   /* Infinite loop */
   for(;;)
   {
+	  printf("Checking");
+
 	  if(HAL_UART_Receive(&huart2, &receivedData, 1, 100) == HAL_OK)
 	  {
 		  uint8_t message1[] = "Diode is ON\r\n";
