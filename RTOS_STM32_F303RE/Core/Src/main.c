@@ -26,7 +26,7 @@
 #include "liquidcrystal_i2c.h"
 #include <string.h>
 #include <stdio.h>
-///* USER CODE END Includes */
+/* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
 /* USER CODE BEGIN PTD */
@@ -53,8 +53,10 @@ TIM_HandleTypeDef htim3;
 UART_HandleTypeDef huart2;
 
 osThreadId Task1Handle;
-osThreadId Task2Handle;
-osThreadId Task3Handle;
+osThreadId LCDHandle;
+osThreadId WaterSensorHandle;
+osThreadId AlarmLEDHandle;
+osMessageQId myQueue01Handle;
 /* USER CODE BEGIN PV */
 
 /* USER CODE END PV */
@@ -67,8 +69,9 @@ static void MX_ADC2_Init(void);
 static void MX_I2C1_Init(void);
 static void MX_TIM3_Init(void);
 void Task1_init(void const * argument);
-void Task2_init(void const * argument);
-void Task3_init(void const * argument);
+void StartLCD(void const * argument);
+void StartWaterSensor(void const * argument);
+void StartAlarmLED(void const * argument);
 
 /* USER CODE BEGIN PFP */
 
@@ -96,6 +99,7 @@ int main(void)
 {
   /* USER CODE BEGIN 1 */
 
+
   /* USER CODE END 1 */
 
   /* MCU Configuration--------------------------------------------------------*/
@@ -104,7 +108,7 @@ int main(void)
   HAL_Init();
 
   /* USER CODE BEGIN Init */
-
+  HD44780_Init(2);
   /* USER CODE END Init */
 
   /* Configure the system clock */
@@ -136,6 +140,11 @@ int main(void)
   /* start timers, add new ones, ... */
   /* USER CODE END RTOS_TIMERS */
 
+  /* Create the queue(s) */
+  /* definition and creation of myQueue01 */
+  osMessageQDef(myQueue01, 16, uint16_t);
+  myQueue01Handle = osMessageCreate(osMessageQ(myQueue01), NULL);
+
   /* USER CODE BEGIN RTOS_QUEUES */
   /* add queues, ... */
   /* USER CODE END RTOS_QUEUES */
@@ -145,13 +154,17 @@ int main(void)
   osThreadDef(Task1, Task1_init, osPriorityNormal, 0, 128);
   Task1Handle = osThreadCreate(osThread(Task1), NULL);
 
-  /* definition and creation of Task2 */
-  osThreadDef(Task2, Task2_init, osPriorityBelowNormal, 0, 128);
-  Task2Handle = osThreadCreate(osThread(Task2), NULL);
+  /* definition and creation of LCD */
+  osThreadDef(LCD, StartLCD, osPriorityNormal, 0, 128);
+  LCDHandle = osThreadCreate(osThread(LCD), NULL);
 
-  /* definition and creation of Task3 */
-  osThreadDef(Task3, Task3_init, osPriorityAboveNormal, 0, 128);
-  Task3Handle = osThreadCreate(osThread(Task3), NULL);
+  /* definition and creation of WaterSensor */
+  osThreadDef(WaterSensor, StartWaterSensor, osPriorityNormal, 0, 128);
+  WaterSensorHandle = osThreadCreate(osThread(WaterSensor), NULL);
+
+  /* definition and creation of AlarmLED */
+  osThreadDef(AlarmLED, StartAlarmLED, osPriorityNormal, 0, 128);
+  AlarmLEDHandle = osThreadCreate(osThread(AlarmLED), NULL);
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
@@ -462,6 +475,7 @@ void Task1_init(void const * argument)
   /* Infinite loop */
   for(;;)
   {
+	  /*
 	  printf("Checking");
 
 	  if(HAL_UART_Receive(&huart2, &receivedData, 1, 100) == HAL_OK)
@@ -483,45 +497,96 @@ void Task1_init(void const * argument)
 	  }
 	  //uint8_t text[] = "text from TASK1\r\n";
 	  //HAL_UART_Transmit(&huart2, text, sizeof(text), 500);
-	  osDelay(500);
+	  osDelay(500);*/
   }
   /* USER CODE END 5 */
 }
 
-/* USER CODE BEGIN Header_Task2_init */
+/* USER CODE BEGIN Header_StartLCD */
 /**
-* @brief Function implementing the Task2 thread.
+* @brief Function implementing the LCD thread.
 * @param argument: Not used
 * @retval None
 */
-/* USER CODE END Header_Task2_init */
-void Task2_init(void const * argument)
+/* USER CODE END Header_StartLCD */
+void StartLCD(void const * argument)
 {
-  /* USER CODE BEGIN Task2_init */
+  /* USER CODE BEGIN StartLCD */
+	uint16_t receivedRaw;
+	char lcd_msg[10];
   /* Infinite loop */
   for(;;)
   {
-    osDelay(1);
+	xQueueReceive(myQueue01Handle, &receivedRaw, portMAX_DELAY);
+	sprintf(lcd_msg, "%hu", receivedRaw);
+    HD44780_Clear();
+    HD44780_SetCursor(0,0);
+    HD44780_PrintStr("Water sensor:");
+    HD44780_SetCursor(0,1);
+    HD44780_PrintStr(lcd_msg);
+    HD44780_SetCursor(5,1);
+    if(receivedRaw>1000){
+    	HD44780_PrintStr("Woda obecna");
+    }
+    else{
+    	HD44780_PrintStr("Sucho");
+    }
+    osDelay(1000);
   }
-  /* USER CODE END Task2_init */
+  /* USER CODE END StartLCD */
 }
 
-/* USER CODE BEGIN Header_Task3_init */
+/* USER CODE BEGIN Header_StartWaterSensor */
 /**
-* @brief Function implementing the Task3 thread.
+* @brief Function implementing the WaterSensor thread.
 * @param argument: Not used
 * @retval None
 */
-/* USER CODE END Header_Task3_init */
-void Task3_init(void const * argument)
+/* USER CODE END Header_StartWaterSensor */
+void StartWaterSensor(void const * argument)
 {
-  /* USER CODE BEGIN Task3_init */
+  /* USER CODE BEGIN StartWaterSensor */
+	uint16_t raw;
   /* Infinite loop */
   for(;;)
   {
-    osDelay(1);
+    HAL_ADC_Start(&hadc2);
+    HAL_ADC_PollForConversion(&hadc2, HAL_MAX_DELAY);
+    raw = HAL_ADC_GetValue(&hadc2);
+
+    // Wyślij wartość "raw" do kolejki
+    xQueueSend(myQueue01Handle, &raw, portMAX_DELAY);
+
+    osDelay(1000);
   }
-  /* USER CODE END Task3_init */
+  /* USER CODE END StartWaterSensor */
+}
+
+/* USER CODE BEGIN Header_StartAlarmLED */
+/**
+* @brief Function implementing the AlarmLED thread.
+* @param argument: Not used
+* @retval None
+*/
+/* USER CODE END Header_StartAlarmLED */
+void StartAlarmLED(void const * argument)
+{
+  /* USER CODE BEGIN StartAlarmLED */
+	uint16_t receivedRaw;
+  /* Infinite loop */
+  for(;;)
+  {
+	  xQueueReceive(myQueue01Handle, &receivedRaw, portMAX_DELAY);
+
+    if(receivedRaw>1000){
+    	HAL_GPIO_WritePin(ALARM_LED_GPIO_Port, ALARM_LED_Pin, GPIO_PIN_SET);
+    }
+    else{
+    	HAL_GPIO_WritePin(ALARM_LED_GPIO_Port, ALARM_LED_Pin, GPIO_PIN_RESET);
+    }
+    osDelay(1000);
+  }
+  /* USER CODE END StartAlarmLED */
 }
 
 /**
