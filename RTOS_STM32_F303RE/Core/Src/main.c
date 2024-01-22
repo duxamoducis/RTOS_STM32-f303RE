@@ -57,6 +57,7 @@ osThreadId LCDHandle;
 osThreadId WaterSensorHandle;
 osThreadId AlarmLEDHandle;
 osMessageQId myQueue01Handle;
+osSemaphoreId myBinarySemAlarmHandle;
 /* USER CODE BEGIN PV */
 
 /* USER CODE END PV */
@@ -131,6 +132,11 @@ int main(void)
   /* USER CODE BEGIN RTOS_MUTEX */
   /* add mutexes, ... */
   /* USER CODE END RTOS_MUTEX */
+
+  /* Create the semaphores(s) */
+  /* definition and creation of myBinarySemAlarm */
+  osSemaphoreDef(myBinarySemAlarm);
+  myBinarySemAlarmHandle = osSemaphoreCreate(osSemaphore(myBinarySemAlarm), 1);
 
   /* USER CODE BEGIN RTOS_SEMAPHORES */
   /* add semaphores, ... */
@@ -475,7 +481,7 @@ void Task1_init(void const * argument)
   /* Infinite loop */
   for(;;)
   {
-	  /*
+
 	  printf("Checking");
 
 	  if(HAL_UART_Receive(&huart2, &receivedData, 1, 100) == HAL_OK)
@@ -497,7 +503,7 @@ void Task1_init(void const * argument)
 	  }
 	  //uint8_t text[] = "text from TASK1\r\n";
 	  //HAL_UART_Transmit(&huart2, text, sizeof(text), 500);
-	  osDelay(500);*/
+	  osDelay(500);
   }
   /* USER CODE END 5 */
 }
@@ -527,11 +533,12 @@ void StartLCD(void const * argument)
     HD44780_SetCursor(5,1);
     if(receivedRaw>1000){
     	HD44780_PrintStr("Woda obecna");
+    	osSemaphoreRelease(myBinarySemAlarmHandle);
     }
     else{
     	HD44780_PrintStr("Sucho");
     }
-    osDelay(1000);
+    osDelay(300);
   }
   /* USER CODE END StartLCD */
 }
@@ -550,6 +557,7 @@ void StartWaterSensor(void const * argument)
   /* Infinite loop */
   for(;;)
   {
+
     HAL_ADC_Start(&hadc2);
     HAL_ADC_PollForConversion(&hadc2, HAL_MAX_DELAY);
     raw = HAL_ADC_GetValue(&hadc2);
@@ -557,7 +565,8 @@ void StartWaterSensor(void const * argument)
     // Wyślij wartość "raw" do kolejki
     xQueueSend(myQueue01Handle, &raw, portMAX_DELAY);
 
-    osDelay(1000);
+
+    osDelay(300);
   }
   /* USER CODE END StartWaterSensor */
 }
@@ -576,7 +585,10 @@ void StartAlarmLED(void const * argument)
   /* Infinite loop */
   for(;;)
   {
-	  xQueueReceive(myQueue01Handle, &receivedRaw, portMAX_DELAY);
+
+	osSemaphoreWait(myBinarySemAlarmHandle, osWaitForever);
+
+	xQueueReceive(myQueue01Handle, &receivedRaw, portMAX_DELAY);
 
     if(receivedRaw>1000){
     	HAL_GPIO_WritePin(ALARM_LED_GPIO_Port, ALARM_LED_Pin, GPIO_PIN_SET);
@@ -584,7 +596,8 @@ void StartAlarmLED(void const * argument)
     else{
     	HAL_GPIO_WritePin(ALARM_LED_GPIO_Port, ALARM_LED_Pin, GPIO_PIN_RESET);
     }
-    osDelay(1000);
+    osSemaphoreRelease(myBinarySemAlarmHandle);
+    osDelay(300);
   }
   /* USER CODE END StartAlarmLED */
 }
