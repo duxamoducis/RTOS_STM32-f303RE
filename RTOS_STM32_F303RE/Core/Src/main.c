@@ -109,7 +109,7 @@ int main(void)
   HAL_Init();
 
   /* USER CODE BEGIN Init */
-  HD44780_Init(2);
+
   /* USER CODE END Init */
 
   /* Configure the system clock */
@@ -127,6 +127,7 @@ int main(void)
   MX_TIM3_Init();
   /* USER CODE BEGIN 2 */
   printf("starting....\n");
+  HD44780_Init(2);
   /* USER CODE END 2 */
 
   /* USER CODE BEGIN RTOS_MUTEX */
@@ -531,14 +532,13 @@ void StartLCD(void const * argument)
     HD44780_SetCursor(0,1);
     HD44780_PrintStr(lcd_msg);
     HD44780_SetCursor(5,1);
-    if(receivedRaw>3000){
+    if(receivedRaw>1000){
     	HD44780_PrintStr("Woda obecna");
-    	//osSemaphoreRelease(myBinarySemAlarmHandle);
     }
     else{
     	HD44780_PrintStr("Sucho");
     }
-    osDelay(300);
+    osDelay(500);
   }
   /* USER CODE END StartLCD */
 }
@@ -565,7 +565,6 @@ void StartWaterSensor(void const * argument)
     // Wyślij wartość "raw" do kolejki
     xQueueSend(myQueue01Handle, &raw, portMAX_DELAY);
 
-
     osDelay(300);
   }
   /* USER CODE END StartWaterSensor */
@@ -585,9 +584,6 @@ void StartAlarmLED(void const * argument)
   /* Infinite loop */
   for(;;)
   {
-
-	//osSemaphoreWait(myBinarySemAlarmHandle, osWaitForever);
-
 	xQueueReceive(myQueue01Handle, &receivedRaw, portMAX_DELAY);
 
     if(receivedRaw>1000){
@@ -596,7 +592,6 @@ void StartAlarmLED(void const * argument)
     else{
     	HAL_GPIO_WritePin(ALARM_LED_GPIO_Port, ALARM_LED_Pin, GPIO_PIN_RESET);
     }
-    //osSemaphoreRelease(myBinarySemAlarmHandle);
     osDelay(300);
   }
   /* USER CODE END StartAlarmLED */

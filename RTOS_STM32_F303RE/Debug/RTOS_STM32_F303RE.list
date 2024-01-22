@@ -41,9 +41,9 @@ Idx Name          Size      VMA       LMA       File off  Algn
                   CONTENTS, READONLY, DEBUGGING, OCTETS
  18 .debug_macro  00024eeb  00000000  00000000  000454a5  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 19 .debug_line   0001fa73  00000000  00000000  0006a390  2**0
+ 19 .debug_line   0001fa71  00000000  00000000  0006a390  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 20 .debug_str    000df951  00000000  00000000  00089e03  2**0
+ 20 .debug_str    000df951  00000000  00000000  00089e01  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
  21 .debug_frame  00007244  00000000  00000000  00169754  2**2
                   CONTENTS, READONLY, DEBUGGING, OCTETS
@@ -953,35 +953,35 @@ int main(void)
   /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
   HAL_Init();
  800076e:	f000 fddb 	bl	8001328 <HAL_Init>
-
   /* USER CODE BEGIN Init */
-  HD44780_Init(2);
- 8000772:	2002      	movs	r0, #2
- 8000774:	f7ff fdb8 	bl	80002e8 <HD44780_Init>
+
   /* USER CODE END Init */
 
   /* Configure the system clock */
   SystemClock_Config();
- 8000778:	f000 f890 	bl	800089c <SystemClock_Config>
+ 8000772:	f000 f893 	bl	800089c <SystemClock_Config>
   /* USER CODE BEGIN SysInit */
 
   /* USER CODE END SysInit */
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
- 800077c:	f000 fa12 	bl	8000ba4 <MX_GPIO_Init>
+ 8000776:	f000 fa15 	bl	8000ba4 <MX_GPIO_Init>
   MX_USART2_UART_Init();
- 8000780:	f000 f9e0 	bl	8000b44 <MX_USART2_UART_Init>
+ 800077a:	f000 f9e3 	bl	8000b44 <MX_USART2_UART_Init>
   MX_ADC2_Init();
- 8000784:	f000 f8f2 	bl	800096c <MX_ADC2_Init>
+ 800077e:	f000 f8f5 	bl	800096c <MX_ADC2_Init>
   MX_I2C1_Init();
- 8000788:	f000 f94e 	bl	8000a28 <MX_I2C1_Init>
+ 8000782:	f000 f951 	bl	8000a28 <MX_I2C1_Init>
   MX_TIM3_Init();
- 800078c:	f000 f98c 	bl	8000aa8 <MX_TIM3_Init>
+ 8000786:	f000 f98f 	bl	8000aa8 <MX_TIM3_Init>
   /* USER CODE BEGIN 2 */
   printf("starting....\n");
- 8000790:	4836      	ldr	r0, [pc, #216]	; (800086c <main+0x104>)
- 8000792:	f008 f9fb 	bl	8008b8c <puts>
+ 800078a:	4838      	ldr	r0, [pc, #224]	; (800086c <main+0x104>)
+ 800078c:	f008 f9fe 	bl	8008b8c <puts>
+  HD44780_Init(2);
+ 8000790:	2002      	movs	r0, #2
+ 8000792:	f7ff fda9 	bl	80002e8 <HD44780_Init>
   /* add mutexes, ... */
   /* USER CODE END RTOS_MUTEX */
 
@@ -1943,27 +1943,26 @@ void StartLCD(void const * argument)
  8000d62:	2101      	movs	r1, #1
  8000d64:	2005      	movs	r0, #5
  8000d66:	f7ff fb59 	bl	800041c <HD44780_SetCursor>
-    if(receivedRaw>3000){
+    if(receivedRaw>1000){
  8000d6a:	8afb      	ldrh	r3, [r7, #22]
- 8000d6c:	f640 32b8 	movw	r2, #3000	; 0xbb8
- 8000d70:	4293      	cmp	r3, r2
- 8000d72:	d903      	bls.n	8000d7c <StartLCD+0x68>
+ 8000d6c:	f5b3 7f7a 	cmp.w	r3, #1000	; 0x3e8
+ 8000d70:	d903      	bls.n	8000d7a <StartLCD+0x66>
     	HD44780_PrintStr("Woda obecna");
- 8000d74:	4808      	ldr	r0, [pc, #32]	; (8000d98 <StartLCD+0x84>)
- 8000d76:	f7ff fbc2 	bl	80004fe <HD44780_PrintStr>
- 8000d7a:	e002      	b.n	8000d82 <StartLCD+0x6e>
-    	//osSemaphoreRelease(myBinarySemAlarmHandle);
+ 8000d72:	4809      	ldr	r0, [pc, #36]	; (8000d98 <StartLCD+0x84>)
+ 8000d74:	f7ff fbc3 	bl	80004fe <HD44780_PrintStr>
+ 8000d78:	e002      	b.n	8000d80 <StartLCD+0x6c>
     }
     else{
     	HD44780_PrintStr("Sucho");
- 8000d7c:	4807      	ldr	r0, [pc, #28]	; (8000d9c <StartLCD+0x88>)
- 8000d7e:	f7ff fbbe 	bl	80004fe <HD44780_PrintStr>
+ 8000d7a:	4808      	ldr	r0, [pc, #32]	; (8000d9c <StartLCD+0x88>)
+ 8000d7c:	f7ff fbbf 	bl	80004fe <HD44780_PrintStr>
     }
-    osDelay(300);
- 8000d82:	f44f 7096 	mov.w	r0, #300	; 0x12c
- 8000d86:	f005 f937 	bl	8005ff8 <osDelay>
+    osDelay(500);
+ 8000d80:	f44f 70fa 	mov.w	r0, #500	; 0x1f4
+ 8000d84:	f005 f938 	bl	8005ff8 <osDelay>
 	xQueueReceive(myQueue01Handle, &receivedRaw, portMAX_DELAY);
- 8000d8a:	e7c7      	b.n	8000d1c <StartLCD+0x8>
+ 8000d88:	e7c8      	b.n	8000d1c <StartLCD+0x8>
+ 8000d8a:	bf00      	nop
  8000d8c:	20000968 	.word	0x20000968
  8000d90:	08009dc4 	.word	0x08009dc4
  8000d94:	08009dc8 	.word	0x08009dc8
@@ -2009,7 +2008,6 @@ void StartWaterSensor(void const * argument)
  8000dce:	f04f 32ff 	mov.w	r2, #4294967295
  8000dd2:	f005 fb6f 	bl	80064b4 <xQueueGenericSend>
 
-
     osDelay(300);
  8000dd6:	f44f 7096 	mov.w	r0, #300	; 0x12c
  8000dda:	f005 f90d 	bl	8005ff8 <osDelay>
@@ -2029,11 +2027,11 @@ void StartAlarmLED(void const * argument)
  8000dea:	b084      	sub	sp, #16
  8000dec:	af00      	add	r7, sp, #0
  8000dee:	6078      	str	r0, [r7, #4]
+  /* USER CODE BEGIN StartAlarmLED */
+	uint16_t receivedRaw;
+  /* Infinite loop */
   for(;;)
   {
-
-	//osSemaphoreWait(myBinarySemAlarmHandle, osWaitForever);
-
 	xQueueReceive(myQueue01Handle, &receivedRaw, portMAX_DELAY);
  8000df0:	4b10      	ldr	r3, [pc, #64]	; (8000e34 <StartAlarmLED+0x4c>)
  8000df2:	681b      	ldr	r3, [r3, #0]
@@ -2060,7 +2058,6 @@ void StartAlarmLED(void const * argument)
  8000e20:	f04f 4090 	mov.w	r0, #1207959552	; 0x48000000
  8000e24:	f001 fd1a 	bl	800285c <HAL_GPIO_WritePin>
     }
-    //osSemaphoreRelease(myBinarySemAlarmHandle);
     osDelay(300);
  8000e28:	f44f 7096 	mov.w	r0, #300	; 0x12c
  8000e2c:	f005 f8e4 	bl	8005ff8 <osDelay>
