@@ -531,9 +531,9 @@ void StartLCD(void const * argument)
     HD44780_SetCursor(0,1);
     HD44780_PrintStr(lcd_msg);
     HD44780_SetCursor(5,1);
-    if(receivedRaw>1000){
+    if(receivedRaw>3000){
     	HD44780_PrintStr("Woda obecna");
-    	osSemaphoreRelease(myBinarySemAlarmHandle);
+    	//osSemaphoreRelease(myBinarySemAlarmHandle);
     }
     else{
     	HD44780_PrintStr("Sucho");
@@ -586,7 +586,7 @@ void StartAlarmLED(void const * argument)
   for(;;)
   {
 
-	osSemaphoreWait(myBinarySemAlarmHandle, osWaitForever);
+	//osSemaphoreWait(myBinarySemAlarmHandle, osWaitForever);
 
 	xQueueReceive(myQueue01Handle, &receivedRaw, portMAX_DELAY);
 
@@ -596,7 +596,7 @@ void StartAlarmLED(void const * argument)
     else{
     	HAL_GPIO_WritePin(ALARM_LED_GPIO_Port, ALARM_LED_Pin, GPIO_PIN_RESET);
     }
-    osSemaphoreRelease(myBinarySemAlarmHandle);
+    //osSemaphoreRelease(myBinarySemAlarmHandle);
     osDelay(300);
   }
   /* USER CODE END StartAlarmLED */
