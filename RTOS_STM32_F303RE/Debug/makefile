@@ -64,8 +64,8 @@ all: main-build
 main-build: RTOS_STM32_F303RE.elf secondary-outputs
 
 # Tool invocations
-RTOS_STM32_F303RE.elf RTOS_STM32_F303RE.map: $(OBJS) $(USER_OBJS) C:\Users\Dawid\Desktop\SysWbSem2\7_Systemy_czasu_rzeczywistego\git_RTOS\RTOS_STM32_F303RE\STM32F303RETX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
-	arm-none-eabi-gcc -o "RTOS_STM32_F303RE.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m4 -T"C:\Users\Dawid\Desktop\SysWbSem2\7_Systemy_czasu_rzeczywistego\git_RTOS\RTOS_STM32_F303RE\STM32F303RETX_FLASH.ld" --specs=nosys.specs -Wl,-Map="RTOS_STM32_F303RE.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
+RTOS_STM32_F303RE.elf RTOS_STM32_F303RE.map: $(OBJS) $(USER_OBJS) C:\Users\Krzysztof\STM32CubeIDE\workspace_1.11.2\RTOS_STM32-f303RE\RTOS_STM32_F303RE\STM32F303RETX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
+	arm-none-eabi-gcc -o "RTOS_STM32_F303RE.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m4 -T"C:\Users\Krzysztof\STM32CubeIDE\workspace_1.11.2\RTOS_STM32-f303RE\RTOS_STM32_F303RE\STM32F303RETX_FLASH.ld" --specs=nosys.specs -Wl,-Map="RTOS_STM32_F303RE.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
 	@echo 'Finished building target: $@'
 	@echo ' '
 
